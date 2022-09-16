@@ -57,16 +57,21 @@ function Name({ handleSubmitName }) {
 }
 
 function Message({ audienceId, audienceName }) {
+  const [textBoxValue, setTextBoxValue] = useState("")
+  const navigate = useNavigate()
 
   useEffect(() => {
-    
-    const handleTabClose = event => {
+
+    const handleTabClose = async event => {
       event.preventDefault()
-      axios.delete(APILink + "/audiences", { params: { id: audienceId } })
-      .then(response => console.log(response))
+      await axios.delete(APILink + "/audiences", { params: { id: audienceId } })
     }
 
     window.addEventListener('beforeunload', handleTabClose)
+
+    if (!audienceId) {
+      navigate("/")
+    }
 
     return () => {
       window.removeEventListener('beforeunload', handleTabClose)
@@ -74,9 +79,26 @@ function Message({ audienceId, audienceName }) {
 
   }, [])
 
+  const handleSubmit = async event => {
+    try {
+      event.preventDefault()
+      let response = await axios.post(APILink + "/messages", { audienceId: audienceId, message: textBoxValue })
+      setTextBoxValue("")
+      alert("Message sent!")
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
   return (
     <div>
-      <h1>Hello {audienceName} with ID {audienceId}!</h1>
+      <h1>Hello {audienceName}!</h1>
+      <form onSubmit={handleSubmit}>
+        <label>
+          Message: <input type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
+        </label>
+        <input type="submit" value="Submit" />
+      </form>
     </div>
   );
 }
