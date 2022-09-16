@@ -12,10 +12,6 @@ function App() {
   const [audienceName, setAudienceName] = useState("")
   const navigate = useNavigate()
 
-  useEffect(() => {
-    console.log("Hellow")
-  }, [])
-
   const handleSubmitName = (newAudienceId, newAudienceName) => {
     setAudienceId(newAudienceId)
     setAudienceName(newAudienceName)
@@ -29,15 +25,15 @@ function App() {
       </div>
 
       <Routes>
-        <Route path="/" element={<FillName handleSubmitName={handleSubmitName} />} />
-        <Route path="message" element={<FillMessage audienceId={audienceId} audienceName={audienceName} />} />
+        <Route path="/" element={<Name handleSubmitName={handleSubmitName} />} />
+        <Route path="message" element={<Message audienceId={audienceId} audienceName={audienceName} />} />
       </Routes>
 
     </div>
   );
 }
 
-function FillName({ handleSubmitName }) {
+function Name({ handleSubmitName }) {
   const [textBoxValue, setTextBoxValue] = useState("")
 
   const handleSubmit = async event => {
@@ -60,7 +56,24 @@ function FillName({ handleSubmitName }) {
   );
 }
 
-function FillMessage({ audienceId, audienceName }) {
+function Message({ audienceId, audienceName }) {
+
+  useEffect(() => {
+    
+    const handleTabClose = event => {
+      event.preventDefault()
+      axios.delete(APILink + "/audiences", { params: { id: audienceId } })
+      .then(response => console.log(response))
+    }
+
+    window.addEventListener('beforeunload', handleTabClose)
+
+    return () => {
+      window.removeEventListener('beforeunload', handleTabClose)
+    }
+
+  }, [])
+
   return (
     <div>
       <h1>Hello {audienceName} with ID {audienceId}!</h1>
