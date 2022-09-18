@@ -98,12 +98,12 @@ function Message({ audienceId, audienceName }) {
 
   return (
     <div>
-      <h1>Hello <b>{audienceName}</b>! Try sending: <i>"Wave"</i>, <i>"Dance"</i>, <i>"Idle"</i>, <i>"Clap"</i>, or <i>"Cheer"</i> for different actions!</h1>
+      <h1>Hello <b>{audienceName}</b>! Try sending: <i>"Wave"</i>, <i>"Dance"</i>, <i>"Idle"</i>, <i>"Clap"</i>, or <i>"Cheer"</i> for different actions... or you can say anything you want!</h1>
       <form onSubmit={handleSubmit}>
         <label>
           Message: <input type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
         </label>
-        <input type="submit" value="Submit" />
+        <input type="submit" value="Submit" className='border-solid color-blue' />
       </form>
     </div>
   );
