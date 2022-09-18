@@ -25,7 +25,7 @@ function App() {
       </div>
 
       <Routes>
-        <Route path="/" element={<Name handleSubmitName={handleSubmitName} />} />
+        <Route path="/" element={<Name handleSubmitName={handleSubmitName} audienceId={audienceId} />} />
         <Route path="message" element={<Message audienceId={audienceId} audienceName={audienceName} />} />
       </Routes>
 
@@ -33,8 +33,14 @@ function App() {
   );
 }
 
-function Name({ handleSubmitName }) {
+function Name({ handleSubmitName, audienceId }) {
   const [textBoxValue, setTextBoxValue] = useState("")
+
+  useEffect(() => {
+    if (audienceId !== "") {
+      axios.delete(APILink + "/audiences", { params: { id: audienceId } }).then(response => console.log(response))
+    }
+  }, [])
 
   const handleSubmit = async event => {
     try {
@@ -92,7 +98,7 @@ function Message({ audienceId, audienceName }) {
 
   return (
     <div>
-      <h1>Hello {audienceName}!</h1>
+      <h1>Hello <b>{audienceName}</b>! Try sending: <i>"Wave"</i>, <i>"Dance"</i>, <i>"Idle"</i>, <i>"Clap"</i>, or <i>"Cheer"</i> for different actions!</h1>
       <form onSubmit={handleSubmit}>
         <label>
           Message: <input type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
