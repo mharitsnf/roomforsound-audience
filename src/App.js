@@ -19,9 +19,9 @@ function App() {
   }
 
   return (
-    <div className='mx-[10%] my-[2.5%] drop-shadow-lg'>
-      <div className='flex w-full justify-center'>
-        <h1>Room For Sound?</h1>
+    <div className='mx-[10%] my-[2.5%] drop-shadow-lg font-raleway'>
+      <div className='flex w-full justify-center mt-[5rem] mb-[2rem]'>
+        <h1 className='text-3xl'><b>Room For Sound?</b></h1>
       </div>
 
       <Routes>
@@ -35,6 +35,7 @@ function App() {
 
 function Name({ handleSubmitName, audienceId }) {
   const [textBoxValue, setTextBoxValue] = useState("")
+  const [isNameValid, setIsNameValid] = useState(true)
 
   useEffect(() => {
     if (audienceId !== "") {
@@ -45,6 +46,17 @@ function Name({ handleSubmitName, audienceId }) {
   const handleSubmit = async event => {
     try {
       event.preventDefault()
+
+
+      console.log(textBoxValue)
+
+      if (textBoxValue == "") {
+        setIsNameValid(false)
+        return
+      }
+
+      setIsNameValid(true)
+
       let response = await axios.post(APILink + "/audiences", { name: textBoxValue })
       handleSubmitName(response.data.data.id, response.data.data.name)
     } catch (error) {
@@ -53,12 +65,20 @@ function Name({ handleSubmitName, audienceId }) {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <label>
-        Name: <input type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
-      </label>
-      <input type="submit" value="Submit" />
-    </form>
+    <div className='my-[2%] mx-[2%] h-full shadow-2xl rounded-[1rem]'>
+      <div className='p-[2.5rem]'>
+        <p className='mb-[3rem]'>
+          You can enter your name to participate as an audience in the game! You'll
+          have the ability to send emotes and messages to the player. Have a try!
+        </p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-[1rem] justify-center">
+          <p className='text-gray-500 text-xs'>Enter your name:</p>
+          <input className='w-full lg:w-[25%] h-[2rem] px-[.75rem] rounded' type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
+          <p className={`${isNameValid ? 'hidden' : ''} text-red-500 text-xs`}>Your name cannot be empty!</p>
+          <button className='bg-blue-400 text-white rounded-full p-[.5rem] drop-shadow-sm'>Submit</button>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -103,7 +123,7 @@ function Message({ audienceId, audienceName }) {
         <label>
           Message: <input type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
         </label>
-        <input type="submit" value="Submit" className='border-solid color-blue' />
+        <button className='rounded-full' type="submit">Submit</button>
       </form>
     </div>
   );
