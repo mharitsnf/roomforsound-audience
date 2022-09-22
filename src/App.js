@@ -47,10 +47,7 @@ function Name({ handleSubmitName, audienceId }) {
     try {
       event.preventDefault()
 
-
-      console.log(textBoxValue)
-
-      if (textBoxValue == "") {
+      if (textBoxValue === "") {
         setIsNameValid(false)
         return
       }
@@ -75,7 +72,7 @@ function Name({ handleSubmitName, audienceId }) {
           <p className='text-gray-500 text-xs'>Enter your name:</p>
           <input className='w-full lg:w-[25%] h-[2rem] px-[.75rem] rounded' type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
           <p className={`${isNameValid ? 'hidden' : ''} text-red-500 text-xs`}>Your name cannot be empty!</p>
-          <button className='bg-blue-400 text-white rounded-full p-[.5rem] drop-shadow-sm'>Submit</button>
+          <button className='bg-green-400 text-gray-700 rounded-full p-[.5rem] drop-shadow-sm'>Submit</button>
         </form>
       </div>
     </div>
@@ -84,6 +81,7 @@ function Name({ handleSubmitName, audienceId }) {
 
 function Message({ audienceId, audienceName }) {
   const [textBoxValue, setTextBoxValue] = useState("")
+  const [isMessageValid, setIsMessageValid] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -108,24 +106,46 @@ function Message({ audienceId, audienceName }) {
   const handleSubmit = async event => {
     try {
       event.preventDefault()
+
+      if (textBoxValue === "") {
+        setIsMessageValid(false)
+        return
+      }
+
+      setIsMessageValid(true)
+
       let response = await axios.post(APILink + "/messages", { audienceId: audienceId, message: textBoxValue })
+      
       setTextBoxValue("")
-      alert("Message sent!")
+
     } catch (error) {
       console.log(error)
     }
   }
 
   return (
-    <div>
-      <h1>Hello <b>{audienceName}</b>! Try sending: <i>"Wave"</i>, <i>"Dance"</i>, <i>"Idle"</i>, <i>"Clap"</i>, or <i>"Cheer"</i> for different actions... or you can say anything you want!</h1>
-      <form onSubmit={handleSubmit}>
-        <label>
-          Message: <input type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
-        </label>
-        <button className='rounded-full' type="submit">Submit</button>
-      </form>
+    <div className='my-[2%] mx-[2%] h-full shadow-2xl rounded-[1rem]'>
+      <div className='p-[2.5rem]'>
+        <p className='mb-[1rem]'>Hello <b>{audienceName}</b>!</p>
+        <p className='mb-[3rem]'>Try sending: <i>Wave</i>, <i>Dance</i>, <i>Idle</i>, <i>Clap</i>, or <i>Cheer</i> for different actions... or you can say anything you want!</p>
+        <form onSubmit={handleSubmit} className="flex flex-col gap-[1rem] justify-center">
+          <p className='text-gray-500 text-xs'>Enter message:</p>
+          <input className='w-full lg:w-[25%] h-[2rem] px-[.75rem] rounded' type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
+          <p className={`${isMessageValid ? 'hidden' : ''} text-red-500 text-xs`}>Message cannot be empty!</p>
+          <button className='bg-blue-400 text-white rounded-full p-[.5rem] drop-shadow-sm'>Send message</button>
+        </form>
+      </div>
     </div>
+
+    // <div>
+    //   <h1>Hello <b>{audienceName}</b>! Try sending: <i>"Wave"</i>, <i>"Dance"</i>, <i>"Idle"</i>, <i>"Clap"</i>, or <i>"Cheer"</i> for different actions... or you can say anything you want!</h1>
+    //   <form onSubmit={handleSubmit}>
+    //     <label>
+    //       Message: <input type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
+    //     </label>
+    //     <button className='rounded-full' type="submit">Submit</button>
+    //   </form>
+    // </div>
   );
 }
 
