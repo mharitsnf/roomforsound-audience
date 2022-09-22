@@ -115,7 +115,7 @@ function Message({ audienceId, audienceName }) {
       setIsMessageValid(true)
 
       let response = await axios.post(APILink + "/messages", { audienceId: audienceId, message: textBoxValue })
-      
+
       setTextBoxValue("")
 
     } catch (error) {
@@ -123,12 +123,57 @@ function Message({ audienceId, audienceName }) {
     }
   }
 
+  const handleEmoteButtons = async (message) => {
+    try {
+      await axios.post(APILink + "/messages", { audienceId: audienceId, message: message })
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div className='my-[2%] mx-[2%] h-full shadow-2xl rounded-[1rem]'>
       <div className='p-[2.5rem]'>
-        <p className='mb-[1rem]'>Hello <b>{audienceName}</b>!</p>
-        <p className='mb-[3rem]'>Try sending: <i>Wave</i>, <i>Dance</i>, <i>Idle</i>, <i>Clap</i>, or <i>Cheer</i> for different actions... or you can say anything you want!</p>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-[1rem] justify-center">
+        <div className='flex justify-center'>
+          <p className='text-xl'>Hello <b>{audienceName}</b>!</p>
+        </div>
+
+        <div className='w-full my-[4rem] flex flex-col gap-[1rem]'>
+          <button className='bg-gradient-to-r from-blue-400 to-indigo-600 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
+          onClick={_ => handleEmoteButtons("Wave")}
+          >
+            <span>👋</span>
+            <span className='col-span-2'><b>Wave</b></span>
+          </button>
+          <button className='bg-gradient-to-r from-green-400 to-yellow-400 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
+          onClick={_ => handleEmoteButtons("Dance")}
+          >
+            <span>🕺</span>
+            <span className='col-span-2'><b>Dance</b></span>
+          </button>
+          <button className='bg-gradient-to-r from-teal-400 to-teal-700 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
+          onClick={_ => handleEmoteButtons("Idle")}
+          >
+            <span>🧍‍♂️</span>
+            <span className='col-span-2'><b>Idle</b></span>
+          </button>
+          <button className='bg-gradient-to-r from-rose-500 to-rose-300 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
+          onClick={_ => handleEmoteButtons("Clap")}
+          >
+            <span>👏</span>
+            <span className='col-span-2'><b>Clap</b></span>
+          </button>
+          <button className='bg-gradient-to-r from-red-400 to-orange-400 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
+          onClick={_ => handleEmoteButtons("Cheer")}
+          >
+            <span>🙌</span>
+            <span className='col-span-2'><b>Cheer</b></span>
+          </button>
+        </div>
+
+        <p>You can also send any message you want, it will be displayed on the screen!</p>
+
+        <form onSubmit={handleSubmit} className="flex flex-col gap-[1rem] justify-center my-[2rem]">
           <p className='text-gray-500 text-xs'>Enter message:</p>
           <input className='w-full lg:w-[25%] h-[2rem] px-[.75rem] rounded' type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
           <p className={`${isMessageValid ? 'hidden' : ''} text-red-500 text-xs`}>Message cannot be empty!</p>
@@ -136,16 +181,6 @@ function Message({ audienceId, audienceName }) {
         </form>
       </div>
     </div>
-
-    // <div>
-    //   <h1>Hello <b>{audienceName}</b>! Try sending: <i>"Wave"</i>, <i>"Dance"</i>, <i>"Idle"</i>, <i>"Clap"</i>, or <i>"Cheer"</i> for different actions... or you can say anything you want!</h1>
-    //   <form onSubmit={handleSubmit}>
-    //     <label>
-    //       Message: <input type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
-    //     </label>
-    //     <button className='rounded-full' type="submit">Submit</button>
-    //   </form>
-    // </div>
   );
 }
 
