@@ -2,6 +2,7 @@ import './App.css';
 import { Routes, Route, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import { useEffect, useState } from 'react';
+import toast, { Toaster } from "react-hot-toast";
 
 const APILink = "https://roomforsound-server.herokuapp.com"
 // const APILink = "http://localhost:3500"
@@ -20,6 +21,8 @@ function App() {
 
   return (
     <div className='mx-[10%] my-[2.5%] drop-shadow-lg font-raleway'>
+      <Toaster containerStyle={{ position: "sticky" }} position='top-center' />
+
       <div className='flex w-full justify-center mt-[5rem] mb-[2rem]'>
         <h1 className='text-3xl'><b>Room For Sound?</b></h1>
       </div>
@@ -117,15 +120,17 @@ function Message({ audienceId, audienceName }) {
       let response = await axios.post(APILink + "/messages", { audienceId: audienceId, message: textBoxValue })
 
       setTextBoxValue("")
-
+      
+      toast.success("Message sent!")
     } catch (error) {
       console.log(error)
     }
   }
 
-  const handleEmoteButtons = async (message) => {
+  const handleEmoteButtons = async (message, emoji) => {
     try {
       await axios.post(APILink + "/messages", { audienceId: audienceId, message: message })
+      toast("Emote sent!", { icon: emoji })
     } catch (error) {
       console.log(error);
     }
@@ -140,31 +145,31 @@ function Message({ audienceId, audienceName }) {
 
         <div className='w-full my-[4rem] flex flex-col gap-[1rem]'>
           <button className='bg-gradient-to-r from-blue-400 to-indigo-600 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
-          onClick={_ => handleEmoteButtons("Wave")}
+          onClick={_ => handleEmoteButtons("Wave", "👋")}
           >
             <span>👋</span>
             <span className='col-span-2'><b>Wave</b></span>
           </button>
           <button className='bg-gradient-to-r from-green-400 to-yellow-400 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
-          onClick={_ => handleEmoteButtons("Dance")}
+          onClick={_ => handleEmoteButtons("Dance", "🕺")}
           >
             <span>🕺</span>
             <span className='col-span-2'><b>Dance</b></span>
           </button>
           <button className='bg-gradient-to-r from-teal-400 to-teal-700 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
-          onClick={_ => handleEmoteButtons("Idle")}
+          onClick={_ => handleEmoteButtons("Idle", "🧍‍♂️")}
           >
             <span>🧍‍♂️</span>
             <span className='col-span-2'><b>Idle</b></span>
           </button>
           <button className='bg-gradient-to-r from-rose-500 to-rose-300 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
-          onClick={_ => handleEmoteButtons("Clap")}
+          onClick={_ => handleEmoteButtons("Clap", "👏")}
           >
             <span>👏</span>
             <span className='col-span-2'><b>Clap</b></span>
           </button>
           <button className='bg-gradient-to-r from-red-400 to-orange-400 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
-          onClick={_ => handleEmoteButtons("Cheer")}
+          onClick={_ => handleEmoteButtons("Cheer", "🙌")}
           >
             <span>🙌</span>
             <span className='col-span-2'><b>Cheer</b></span>
