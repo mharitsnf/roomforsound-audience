@@ -90,9 +90,10 @@ function Message({ audienceId, audienceName }) {
 
   useEffect(() => {
 
-    const handleTabClose = async event => {
+    const handleTabClose = event => {
       event.preventDefault()
-      await axios.delete(APILink + "/audiences", { params: { id: audienceId } })
+      axios.delete(APILink + "/audiences", { params: { id: audienceId } }).then(res => console.log(res))
+      return (event.returnValue = "Your audience has been deleted. Thanks for playing!")
     }
 
     window.addEventListener('beforeunload', handleTabClose)
@@ -118,6 +119,7 @@ function Message({ audienceId, audienceName }) {
 
     } catch (error) {
       toast.error(error.response.data.message)
+      console.log(error.response.status)
       
       if (error.response.status === 404) {
         // Audience not exist in server
@@ -127,14 +129,17 @@ function Message({ audienceId, audienceName }) {
     }
   }
 
-  const handleEmoteButtons = async (message, emoji) => {
-    try {
-      await axios.post(APILink + "/messages", { audienceId: audienceId, message: message })
-      toast("Emote sent!", { icon: emoji })
-
-    } catch (error) {
+  const handleEmoteButtons = (message, emoji) => {
+    axios.post(APILink + "/messages", { audienceId: audienceId, message: message })
+    .then(res => toast("Emote sent!", { icon: emoji }))
+    .catch(error => {
       toast.error(error.response.data.message)
-    }
+
+      if (error.response.status === 404) {
+        navigate("/")
+        return
+      }
+    })
   }
 
   return (
