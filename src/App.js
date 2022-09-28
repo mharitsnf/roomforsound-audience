@@ -19,6 +19,11 @@ function App() {
     navigate("message")
   }
 
+  const resetAudience = () => {
+    setAudienceId("")
+    setAudienceName("")
+  }
+
   return (
     <div className='mx-[10%] my-[2.5%] drop-shadow-lg font-raleway'>
       <Toaster containerStyle={{ position: "sticky" }} position='top-left' />
@@ -28,7 +33,7 @@ function App() {
       </div>
 
       <Routes>
-        <Route path="/" element={<Name handleSubmitName={handleSubmitName} audienceId={audienceId} />} />
+        <Route path="/" element={<Name handleSubmitName={handleSubmitName} resetAudience={resetAudience} audienceId={audienceId} />} />
         <Route path="message" element={<Message audienceId={audienceId} audienceName={audienceName} />} />
       </Routes>
 
@@ -36,31 +41,25 @@ function App() {
   );
 }
 
-function Name({ handleSubmitName, audienceId }) {
+function Name({ handleSubmitName, resetAudience, audienceId }) {
   const [textBoxValue, setTextBoxValue] = useState("")
-  const [isNameValid, setIsNameValid] = useState(true)
 
   useEffect(() => {
     if (audienceId !== "") {
       axios.delete(APILink + "/audiences", { params: { id: audienceId } }).then(response => console.log(response))
     }
+    resetAudience()
   }, [])
 
   const handleSubmit = async event => {
     try {
       event.preventDefault()
 
-      if (textBoxValue === "") {
-        setIsNameValid(false)
-        return
-      }
-
-      setIsNameValid(true)
-
       let response = await axios.post(APILink + "/audiences", { name: textBoxValue })
       handleSubmitName(response.data.data.id, response.data.data.name)
+
     } catch (error) {
-      console.log(error)
+      toast.error(error.response.data.message)
     }
   }
 
@@ -76,7 +75,6 @@ function Name({ handleSubmitName, audienceId }) {
           <form onSubmit={handleSubmit} className="flex flex-col gap-[1rem] justify-center lg:w-[50%]">
             <p className='text-gray-500 text-xs'>Enter your name:</p>
             <input className='w-full h-[2rem] px-[.75rem] rounded' type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
-            <p className={`${isNameValid ? 'hidden' : ''} text-red-500 text-xs`}>Your name cannot be empty!</p>
             <button className='bg-green-400 text-gray-700 rounded-full p-[.5rem] drop-shadow-sm'>Submit</button>
           </form>
         </div>
@@ -88,7 +86,6 @@ function Name({ handleSubmitName, audienceId }) {
 
 function Message({ audienceId, audienceName }) {
   const [textBoxValue, setTextBoxValue] = useState("")
-  const [isMessageValid, setIsMessageValid] = useState(true)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -113,21 +110,20 @@ function Message({ audienceId, audienceName }) {
   const handleSubmit = async event => {
     try {
       event.preventDefault()
-
-      if (textBoxValue === "") {
-        setIsMessageValid(false)
-        return
-      }
-
-      setIsMessageValid(true)
-
-      let response = await axios.post(APILink + "/messages", { audienceId: audienceId, message: textBoxValue })
+      
+      await axios.post(APILink + "/messages", { audienceId: audienceId, message: textBoxValue })
 
       setTextBoxValue("")
-
       toast.success("Message sent!")
+
     } catch (error) {
-      console.log(error)
+      toast.error(error.response.data.message)
+      
+      if (error.response.status === 404) {
+        // Audience not exist in server
+        navigate("/")
+        return
+      }
     }
   }
 
@@ -135,8 +131,9 @@ function Message({ audienceId, audienceName }) {
     try {
       await axios.post(APILink + "/messages", { audienceId: audienceId, message: message })
       toast("Emote sent!", { icon: emoji })
+
     } catch (error) {
-      console.log(error);
+      toast.error(error.response.data.message)
     }
   }
 
@@ -186,7 +183,6 @@ function Message({ audienceId, audienceName }) {
           <form onSubmit={handleSubmit} className="flex flex-col gap-[1rem] justify-center my-[2rem] lg:w-[50%]">
             <p className='text-gray-500 text-xs'>Enter message:</p>
             <input className='w-full h-[2rem] px-[.75rem] rounded' type="text" name="name" value={textBoxValue} onChange={event => setTextBoxValue(event.target.value)} />
-            <p className={`${isMessageValid ? 'hidden' : ''} text-red-500 text-xs`}>Message cannot be empty!</p>
             <button className='bg-blue-400 text-white rounded-full p-[.5rem] drop-shadow-sm'>Send message</button>
           </form>
         </div>
