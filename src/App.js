@@ -90,20 +90,23 @@ function Message({ audienceId, audienceName }) {
 
   useEffect(() => {
 
-    const handleTabClose = event => {
+    const handleVisibilityChange = event => {
       event.preventDefault()
-      axios.delete(APILink + "/audiences", { params: { id: audienceId } }).then(res => console.log(res))
-      return (event.returnValue = "Your audience has been deleted. Thanks for playing!")
+      if (document.visibilityState === 'hidden') {
+        navigate("/")
+      }
     }
 
-    window.addEventListener('beforeunload', handleTabClose)
+
+    // window.addEventListener('beforeunload', handleTabClose)
+    window.addEventListener('visibilitychange', handleVisibilityChange)
 
     if (!audienceId) {
       navigate("/")
     }
 
     return () => {
-      window.removeEventListener('beforeunload', handleTabClose)
+      window.removeEventListener('visibilitychange', handleVisibilityChange)
     }
 
   }, [])
