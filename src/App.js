@@ -183,6 +183,18 @@ function Message({ audienceId, audienceName }) {
             <span>🙌</span>
             <span className='col-span-2'><b>Cheer</b></span>
           </button>
+          <button className='bg-gradient-to-r from-red-700 to-pink-500 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
+            onClick={_ => handleEmoteButtons("Firework", "🎆")}
+          >
+            <span>🎆</span>
+            <span className='col-span-2'><b>Fireworks</b></span>
+          </button>
+          <button className='bg-gradient-to-r from-pink-400 to-rose-600 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
+            onClick={_ => handleEmoteButtons("Heart", "🤍")}
+          >
+            <span>🤍</span>
+            <span className='col-span-2'><b>Hearts</b></span>
+          </button>
         </div>
 
         <p>You can also send any message you want, it will be displayed on the screen!</p>
