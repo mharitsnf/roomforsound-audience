@@ -11,8 +11,8 @@ function Message({ audienceId, audienceName }) {
     const [isWsOpen, setIsWsOpen] = useState(false)
     const navigate = useNavigate()
 
-    let APILink = protocols.http + domains.local
-    let wsServer = protocols.ws + domains.local
+    let APILink = protocols.https + domains.development
+    let wsServer = protocols.wss + domains.development
 
     const {
         sendMessage,
