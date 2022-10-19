@@ -8,6 +8,7 @@ import { useWebSocket } from 'react-use-websocket/dist/lib/use-websocket';
 
 function Message({ audienceId, audienceName }) {
     const [textBoxValue, setTextBoxValue] = useState("")
+    const [isWsOpen, setIsWsOpen] = useState(false)
     const navigate = useNavigate()
 
     let APILink = protocols.http + domains.local
@@ -21,7 +22,19 @@ function Message({ audienceId, audienceName }) {
         readyState,
         getWebSocket,
     } = useWebSocket(wsServer, {
-        onOpen: () => console.log("opened"),
+        onOpen: () => {
+            setIsWsOpen(true)
+            console.log("opened")
+            sendJsonMessage({ message: `my name is ${audienceName}` })
+        },
+        onClose: () => {
+            setIsWsOpen(false)
+            console.log("closed")
+            sendJsonMessage({ message: `byebye` })
+        },
+        onMessage: (event) => {
+            console.log(JSON.parse(event.data))
+        },
         shouldReconnect: () => true,
     })
 
