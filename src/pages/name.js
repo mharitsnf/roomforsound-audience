@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import toast, { Toaster } from "react-hot-toast";
-import { APILink } from "../App"
+import toast from "react-hot-toast";
+import { protocols, domains } from "../App"
+
 
 function Name({ handleSubmitName, resetAudience, audienceId }) {
     const [textBoxValue, setTextBoxValue] = useState("")
+
+    let APILink = protocols.http + domains.local
 
     useEffect(() => {
         if (audienceId !== "") {

@@ -2,14 +2,30 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import toast from "react-hot-toast";
-import { APILink } from "../App"
+import { protocols, domains } from "../App"
+import { useWebSocket } from 'react-use-websocket/dist/lib/use-websocket';
+
 
 function Message({ audienceId, audienceName }) {
     const [textBoxValue, setTextBoxValue] = useState("")
     const navigate = useNavigate()
 
-    useEffect(() => {
+    let APILink = protocols.http + domains.local
+    let wsServer = protocols.ws + domains.local
 
+    const {
+        sendMessage,
+        sendJsonMessage,
+        lastMessage,
+        lastJsonMessage,
+        readyState,
+        getWebSocket,
+    } = useWebSocket(wsServer, {
+        onOpen: () => console.log("opened"),
+        shouldReconnect: () => true,
+    })
+
+    useEffect(() => {
         const handleVisibilityChange = event => {
             event.preventDefault()
             if (document.visibilityState === 'hidden') {
@@ -17,8 +33,6 @@ function Message({ audienceId, audienceName }) {
             }
         }
 
-
-        // window.addEventListener('beforeunload', handleTabClose)
         window.addEventListener('visibilitychange', handleVisibilityChange)
 
         if (!audienceId) {

@@ -1,14 +1,21 @@
 import './App.css';
 import { Routes, Route, useNavigate } from "react-router-dom";
-import axios from 'axios';
-import { useEffect, useState } from 'react';
-import toast, { Toaster } from "react-hot-toast";
+import { useState } from 'react';
+import { Toaster } from "react-hot-toast";
 import Name from './pages/name';
 import Message from './pages/message';
 
-// export const APILink = "https://roomforsound-server.herokuapp.com"
-export const APILink = "http://localhost:3500"
+export const protocols = {
+  http: "http://",
+  https: "https://",
+  ws: "ws://",
+  wss: "wss://"
+}
 
+export const domains = {
+  development: "roomforsound-server.herokuapp.com",
+  local: "localhost:3500"
+}
 
 function App() {
   const [audienceId, setAudienceId] = useState("")
