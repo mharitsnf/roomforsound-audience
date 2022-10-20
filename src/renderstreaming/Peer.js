@@ -1,4 +1,3 @@
-import { isCompositeComponent } from "react-dom/test-utils";
 
 export class Peer extends EventTarget {
 
@@ -14,8 +13,8 @@ export class Peer extends EventTarget {
         this.waitingAnswer = false;
         this.ignoreOffer = false;
         this.srdAnswerPending = false;
-        this.log = str => void console.log(`[${_this.polite ? 'POLITE' : 'IMPOLITE'}] ${str}`);
-        this.warn = str => void console.warn(`[${_this.polite ? 'POLITE' : 'IMPOLITE'}] ${str}`);
+        this.log = str => console.log(`[${_this.polite ? 'POLITE' : 'IMPOLITE'}] ${str}`);
+        this.warn = str => console.warn(`[${_this.polite ? 'POLITE' : 'IMPOLITE'}] ${str}`);
         this.assert_equals = window.assert_equals ? window.assert_equals : (a, b, msg) => { if (a === b) { return; } throw new Error(`${msg} expected ${b} but got ${a}`); };
         this.interval = resendIntervalMsec;
         this.sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
@@ -58,6 +57,7 @@ export class Peer extends EventTarget {
 
     async _onNegotiation() {
         try {
+            console.log('asdasd')
             this.log(`SLD due to negotiationneeded`);
             this.assert_equals(this.pc.signalingState, 'stable', 'negotiationneeded always fires in stable state');
             this.assert_equals(this.makingOffer, false, 'negotiationneeded not already in progress');
@@ -75,12 +75,12 @@ export class Peer extends EventTarget {
     }
 
     async loopResendOffer() {
+        console.log(this.pc, this.waitingAnswer)
         while (this.connectionId) {
             if (this.pc && this.waitingAnswer) {
                 this.dispatchEvent(new CustomEvent('sendoffer', { detail: { connectionId: this.connectionId, sdp: this.pc.localDescription.sdp } }));
             }
             await this.sleep(this.interval);
-            console.log("resending offer...")
         }
     }
 
@@ -90,6 +90,110 @@ export class Peer extends EventTarget {
         }
 
         return this.pc.createDataChannel(label);
+    }
+
+    close() {
+        this.connectionId = null;
+        if (this.pc) {
+            this.pc.close();
+            this.pc = null;
+        }
+    }
+
+    getTransceivers(connectionId) {
+        if (this.connectionId != connectionId) {
+            return null;
+        }
+
+        return this.pc.getTransceivers();
+    }
+
+    addTrack(connectionId, track) {
+        if (this.connectionId != connectionId) {
+            return null;
+        }
+
+        return this.pc.addTrack(track);
+    }
+
+    addTransceiver(connectionId, trackOrKind, init) {
+        if (this.connectionId != connectionId) {
+            return null;
+        }
+
+        return this.pc.addTransceiver(trackOrKind, init);
+    }
+
+    createDataChannel(connectionId, label) {
+        if (this.connectionId != connectionId) {
+            return null;
+        }
+
+        return this.pc.createDataChannel(label);
+    }
+
+    async getStats(connectionId) {
+        if (this.connectionId != connectionId) {
+            return null;
+        }
+
+        return await this.pc.getStats();
+    }
+
+    async onGotDescription(connectionId, description) {
+        if (this.connectionId != connectionId) {
+            return;
+        }
+
+        const _this = this;
+        const isStable =
+            this.pc.signalingState == 'stable' ||
+            (this.pc.signalingState == 'have-local-offer' && this.srdAnswerPending);
+        this.ignoreOffer =
+            description.type == 'offer' && !this.polite && (this.makingOffer || !isStable);
+
+        if (this.ignoreOffer) {
+            _this.log(`glare - ignoring offer`);
+            return;
+        }
+
+        this.waitingAnswer = false;
+        this.srdAnswerPending = description.type == 'answer';
+        _this.log(`SRD(${description.type})`);
+        await this.pc.setRemoteDescription(description);
+        this.srdAnswerPending = false;
+
+        if (description.type == 'offer') {
+            _this.dispatchEvent(new CustomEvent('ongotoffer', { detail: { connectionId: _this.connectionId } }));
+
+            _this.assert_equals(this.pc.signalingState, 'have-remote-offer', 'Remote offer');
+            _this.assert_equals(this.pc.remoteDescription.type, 'offer', 'SRD worked');
+            _this.log('SLD to get back to stable');
+            await this.pc.setLocalDescription();
+            _this.assert_equals(this.pc.signalingState, 'stable', 'onmessage not racing with negotiationneeded');
+            _this.assert_equals(this.pc.localDescription.type, 'answer', 'onmessage SLD worked');
+            _this.dispatchEvent(new CustomEvent('sendanswer', { detail: { connectionId: _this.connectionId, sdp: _this.pc.localDescription.sdp } }));
+
+        } else {
+            _this.dispatchEvent(new CustomEvent('ongotanswer', { detail: { connectionId: _this.connectionId } }));
+
+            _this.assert_equals(this.pc.remoteDescription.type, 'answer', 'Answer was set');
+            _this.assert_equals(this.pc.signalingState, 'stable', 'answered');
+            this.pc.dispatchEvent(new Event('negotiated'));
+        }
+    }
+
+    async onGotCandidate(connectionId, candidate) {
+        if (this.connectionId != connectionId) {
+            return;
+        }
+
+        try {
+            await this.pc.addIceCandidate(candidate);
+        } catch (e) {
+            if (this.pc && !this.ignoreOffer)
+                this.warn(`${this.pc} this candidate can't accept current signaling state ${this.pc.signalingState}.`);
+        }
     }
 
 }

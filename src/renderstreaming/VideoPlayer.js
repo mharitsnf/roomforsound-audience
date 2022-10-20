@@ -4,11 +4,17 @@ import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket"
 import * as Logger from "../configs/logger"
 import { RenderStreaming } from "./RenderStreaming"
 import { WebSocketDispatcher } from "./WebSocketDispatcher"
-import { WebSocketSignaling } from "./WebSocketSignaling"
+
+let wsDispatcher = null
+let renderStreaming = null
+
+class BaseVideoPlayer {
+    constructor() {
+        
+    }
+}
 
 function VideoPlayer({ wsUrl }) {
-    const [wsDispatcher, setWsDispatcher] = useState(null)
-    const [renderStreaming, setRenderStreaming] = useState(null)
 
     const _onLoadedVideo = (event) => {
         const videoElement = document.getElementById("videoplayer")
@@ -16,11 +22,15 @@ function VideoPlayer({ wsUrl }) {
     }
 
     const setupRenderStreaming = async (wsd) => {
-        const rs = new RenderStreaming(wsd, {})
-        setRenderStreaming(rs)
+        renderStreaming = new RenderStreaming(wsd, {})
 
-        await rs.start()
-        await rs.createConnection()
+        await renderStreaming.start()
+        await renderStreaming.createConnection()
+    }
+
+    const rsOnConnect = () => {
+        const channel = renderStreaming.createDataChannel("input")
+        
     }
 
     const {
@@ -32,11 +42,10 @@ function VideoPlayer({ wsUrl }) {
         getWebSocket,
     } = useWebSocket(wsUrl, {
         onOpen: () => {
-            let wsd = new WebSocketDispatcher(sendMessage)
-            wsd.isWsOpen = true
-            setWsDispatcher(wsd)
+            wsDispatcher = new WebSocketDispatcher(sendMessage)
+            wsDispatcher.isWsOpen = true
 
-            setupRenderStreaming(wsd)
+            setupRenderStreaming(wsDispatcher)
 
             sendMessage(JSON.stringify({ message: "Hello from client!" }))
             console.log("Connected to server")
@@ -45,7 +54,7 @@ function VideoPlayer({ wsUrl }) {
         onClose: () => {
             if (wsDispatcher) {
                 wsDispatcher.isWsOpen = false
-                setWsDispatcher(null)
+                wsDispatcher = null
             }
 
             sendMessage(JSON.stringify({ message: "Goodbye from client!" }))
@@ -63,12 +72,16 @@ function VideoPlayer({ wsUrl }) {
                     wsDispatcher.customDispatch("connect", { detail: msg })
                     break
                 case "disconnect":
+                    wsDispatcher.customDispatch("disconnect", { detail: msg })
                     break
                 case "offer":
+                    wsDispatcher.customDispatch("offer", { detail: { connectionId: msg.from, sdp: msg.data.sdp, polite: msg.data.polite } })
                     break
                 case "answer":
+                    wsDispatcher.customDispatch('answer', { detail: { connectionId: msg.from, sdp: msg.data.sdp } })
                     break
                 case "candidate":
+                    wsDispatcher.customDispatch('candidate', { detail: { connectionId: msg.from, candidate: msg.data.candidate, sdpMLineIndex: msg.data.sdpMLineIndex, sdpMid: msg.data.sdpMid } })
                     break
                 default:
                     break

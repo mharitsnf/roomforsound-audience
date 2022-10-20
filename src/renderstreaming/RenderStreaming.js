@@ -94,6 +94,10 @@ export class RenderStreaming {
         await this._signaling.createConnection(this._connectionId);
     }
 
+    async deleteConnection() {
+        await this._signaling.deleteConnection(this._connectionId);
+    }
+
     _preparePeerConnection(connectionId, polite) {
         if (this._peer) {
             console.log("Close current peer connection")
@@ -143,6 +147,21 @@ export class RenderStreaming {
    */
     createDataChannel(label) {
         return this._peer.createDataChannel(this._connectionId, label);
+    }
+
+    /**
+   * @param {MediaStreamTrack} track 
+   * @returns {RTCRtpSender | null}
+   */
+    addTrack(track) {
+        return this._peer.addTrack(this._connectionId, track);
+    }
+
+    /**
+     * @returns {RTCRtpTransceiver[] | null}
+     */
+    getTransceivers() {
+        return this._peer.getTransceivers(this._connectionId);
     }
 
     async start() {
