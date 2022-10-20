@@ -3,40 +3,14 @@ import { useNavigate } from "react-router-dom";
 import axios from 'axios';
 import toast from "react-hot-toast";
 import { protocols, domains } from "../App"
-import { useWebSocket } from 'react-use-websocket/dist/lib/use-websocket';
-
+import VideoContainer from '../renderstreaming/VideoContainer';
 
 function Message({ audienceId, audienceName }) {
     const [textBoxValue, setTextBoxValue] = useState("")
-    const [isWsOpen, setIsWsOpen] = useState(false)
     const navigate = useNavigate()
 
-    let APILink = protocols.https + domains.development
-    let wsServer = protocols.wss + domains.development
-
-    const {
-        sendMessage,
-        sendJsonMessage,
-        lastMessage,
-        lastJsonMessage,
-        readyState,
-        getWebSocket,
-    } = useWebSocket(wsServer, {
-        onOpen: () => {
-            setIsWsOpen(true)
-            console.log("opened")
-            sendJsonMessage({ message: `my name is ${audienceName}` })
-        },
-        onClose: () => {
-            setIsWsOpen(false)
-            console.log("closed")
-            sendJsonMessage({ message: `byebye` })
-        },
-        onMessage: (event) => {
-            console.log(JSON.parse(event.data))
-        },
-        shouldReconnect: () => true,
-    })
+    let APILink = protocols.http + domains.local
+    let wsUrl = protocols.ws + domains.local
 
     useEffect(() => {
         const handleVisibilityChange = event => {
@@ -98,6 +72,8 @@ function Message({ audienceId, audienceName }) {
                 <div className='flex justify-center'>
                     <p className='text-xl'>Hello <b>{audienceName}</b>!</p>
                 </div>
+
+                <VideoContainer wsUrl={wsUrl} />
 
                 <div className='w-full my-[4rem] flex lg:flex-none flex-col lg:grid lg:grid-cols-5 gap-[1rem]'>
                     <button className='bg-gradient-to-r from-blue-400 to-indigo-600 rounded w-full py-[1rem] px-[1rem] text-white grid grid-cols-4 gap-[1rem] text-lg'
