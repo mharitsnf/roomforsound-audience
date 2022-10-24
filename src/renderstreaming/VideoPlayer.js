@@ -1,28 +1,36 @@
-import { render } from "@testing-library/react"
 import { useEffect, useState } from "react"
 import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket"
-import * as Logger from "../configs/logger"
 import { RenderStreaming } from "./RenderStreaming"
 import { WebSocketDispatcher } from "./WebSocketDispatcher"
+import { BaseVideoPlayer } from "./BaseVideoPlayer"
 
 let wsDispatcher = null
 let renderStreaming = null
+let vp = null
 
-class BaseVideoPlayer {
-    constructor() {
-        
-    }
+function getRTCConfiguration() {
+    let config = {};
+    config.sdpSemantics = 'unified-plan';
+    config.iceServers = [{ urls: ['stun:stun.l.google.com:19302'] }];
+    return config;
 }
 
-function VideoPlayer({ wsUrl }) {
+function VideoPlayer({ wsUrl, selectedCodec, supportsSetCodecPreferences }) {
 
-    const _onLoadedVideo = (event) => {
-        const videoElement = document.getElementById("videoplayer")
-        videoElement.play()
+    const setupVideoPlayer = () => {
+        vp = new BaseVideoPlayer()
+        const videoContainer = document.getElementById("videoContainer")
+        const lockMouseCheck = document.getElementById("lockMouseCheck")
+        vp.createPlayer(videoContainer, lockMouseCheck)
     }
 
-    const setupRenderStreaming = async (wsd) => {
-        renderStreaming = new RenderStreaming(wsd, {})
+    const setupRenderStreaming = async (websocket) => {
+        wsDispatcher = new WebSocketDispatcher(websocket)
+        renderStreaming = new RenderStreaming(wsDispatcher, getRTCConfiguration())
+        renderStreaming.onConnect = rsOnConnect
+        renderStreaming.onDisconnect = rsOnDisconnect
+        renderStreaming.onTrackEvent = (data) => { vp.addTrack(data.track) }
+        renderStreaming.onGotOffer = setCodecPreferences
 
         await renderStreaming.start()
         await renderStreaming.createConnection()
@@ -30,7 +38,39 @@ function VideoPlayer({ wsUrl }) {
 
     const rsOnConnect = () => {
         const channel = renderStreaming.createDataChannel("input")
-        
+        vp.setupInput(channel)
+    }
+
+    const rsOnDisconnect = async () => {
+        await renderStreaming.stop()
+        renderStreaming = null
+        wsDispatcher.isWsOpen = false
+        wsDispatcher = null
+        vp.deletePlayer()
+    }
+
+    const setCodecPreferences = () => {
+        /** @type {RTCRtpCodecCapability[] | null} */
+        let selectedCodecs = null
+        if (supportsSetCodecPreferences) {
+            const preferredCodec = selectedCodec
+            if (preferredCodec.value !== '') {
+                const [mimeType, sdpFmtpLine] = preferredCodec.value.split(' ')
+                const { codecs } = RTCRtpSender.getCapabilities('video')
+                const selectedCodecIndex = codecs.findIndex(c => c.mimeType === mimeType && c.sdpFmtpLine === sdpFmtpLine)
+                const selectCodec = codecs[selectedCodecIndex]
+                selectedCodecs = [selectCodec]
+            }
+        }
+
+        if (selectedCodecs == null) {
+            return
+        }
+
+        const transceivers = renderStreaming.getTransceivers().filter(t => t.receiver.track.kind == "video")
+        if (transceivers && transceivers.length > 0) {
+            transceivers.forEach(t => t.setCodecPreferences(selectedCodecs))
+        }
     }
 
     const {
@@ -41,33 +81,22 @@ function VideoPlayer({ wsUrl }) {
         readyState,
         getWebSocket,
     } = useWebSocket(wsUrl, {
-        onOpen: () => {
-            wsDispatcher = new WebSocketDispatcher(sendMessage)
-            wsDispatcher.isWsOpen = true
-
-            setupRenderStreaming(wsDispatcher)
-
-            sendMessage(JSON.stringify({ message: "Hello from client!" }))
-            console.log("Connected to server")
+        onOpen: async () => {
+            setupVideoPlayer()
+            await setupRenderStreaming(getWebSocket())
         },
 
         onClose: () => {
-            if (wsDispatcher) {
-                wsDispatcher.isWsOpen = false
-                wsDispatcher = null
-            }
-
-            sendMessage(JSON.stringify({ message: "Goodbye from client!" }))
-            console.log("Disconnected from server")
+            wsDispatcher.isWsOpen = false
         },
-        
+
         onMessage: (event) => {
             const msg = JSON.parse(event.data);
             if (!msg) return
 
             console.log(msg)
 
-            switch(msg.type) {
+            switch (msg.type) {
                 case "connect":
                     wsDispatcher.customDispatch("connect", { detail: msg })
                     break
@@ -93,91 +122,16 @@ function VideoPlayer({ wsUrl }) {
     });
 
     return (
-        <video
-            className="w-full"
-            id="videoplayer"
-            style={{ touchAction: "none" }}
-            playsInline={true}
-            onLoadedMetadata={_onLoadedVideo}
-        />
+        <div id="videoContainer" className="w-full flex flex-col">
+            <div className="flex gap-[2rem]">
+                <span>Lock cursor to player: </span>
+                <input type="checkbox" id="lockMouseCheck"></input>
+            </div>
+            <select id="codecPreferences" disabled>
+                <option selected value="">Default</option>
+            </select>
+        </div>
     )
 }
 
 export default VideoPlayer
-
-
-
-// Old Videoplayer
-// function VideoPlayer({ wsUrl }) {
-//     // const [signaling, setSignaling] = useState(null)
-//     // const [renderStreaming, setRenderSteraming] = useState(null)
-//     // const [srcObject, setSrcObject] = useState(new MediaStream())
-
-//     const _onLoadedVideo = (event) => {
-//         const videoElement = document.getElementById("videoplayer")
-//         videoElement.play()
-//     }
-
-//     const {
-//         sendMessage,
-//         sendJsonMessage,
-//         lastMessage,
-//         lastJsonMessage,
-//         readyState,
-//         getWebSocket,
-//     } = useWebSocket(wsUrl, {
-//         onOpen: () => {
-
-//         },
-
-//         onClose: () => {
-
-//         },
-        
-//         onMessage: () => {
-
-//         },
-
-//         //Will attempt to reconnect on all close events, such as server shutting down
-//         shouldReconnect: (closeEvent) => true,
-//     });
-
-//     // const setupRenderStreaming = async () => {
-//     //     const wsSignaling = new WebSocketSignaling(wsUrl)
-//     //     const config = {}
-//     //     const rs = new RenderStreaming(wsSignaling, config)
-
-//     //     await rs.start()
-//     //     await rs.createConnection()
-
-//     //     setSignaling(wsSignaling)
-//     //     setRenderSteraming(rs)
-//     // }
-
-//     // useEffect(() => {
-//     //     const handleVisibilityChange = async event => {
-//     //         event.preventDefault()
-//     //         if (document.visibilityState === 'hidden' && signaling) {
-//     //             await signaling.stop()
-//     //         }
-//     //     }
-
-//     //     window.addEventListener('visibilitychange', handleVisibilityChange)
-
-//     //     setupRenderStreaming()
-
-//     //     return () => {
-//     //         window.removeEventListener('visibilitychange', handleVisibilityChange)
-//     //     }
-//     // }, [])
-
-//     return (
-//         <video
-//             className="w-full"
-//             id="videoplayer"
-//             style={{ touchAction: "none" }}
-//             playsInline={true}
-//             onLoadedMetadata={_onLoadedVideo}
-//         />
-//     )
-// }

@@ -21,18 +21,18 @@ export class RenderStreaming {
         this.onTrackEvent = function (data) { console.log(`OnTrack event peer with data:${data}`); };
         this.onAddChannel = function (data) { console.log(`onAddChannel event peer with data:${data}`); };
 
-        this._config = config;
         this._signaling = signaling;
         this._signaling.addEventListener('connect', this._onConnect.bind(this));
         this._signaling.addEventListener('disconnect', this._onDisconnect.bind(this));
         this._signaling.addEventListener('offer', this._onOffer.bind(this));
         this._signaling.addEventListener('answer', this._onAnswer.bind(this));
         this._signaling.addEventListener('candidate', this._onIceCandidate.bind(this));
+
+        this._config = config;
     }
 
     async _onConnect(e) {
         const data = e.detail
-        console.log("Receive connect event from server: ", data)
         if (this._connectionId == data.connectionId) {
             this._preparePeerConnection(this._connectionId, data.polite)
             this.onConnect(data.connectionId);
@@ -40,53 +40,49 @@ export class RenderStreaming {
     }
 
     async _onDisconnect(e) {
-        console.log("receive disconnect event")
-        // const data = e.detail;
-        // if (this._connectionId == data.connectionId) {
-        //   this.onDisconnect(data.connectionId);
-        //   if (this._peer) {
-        //     this._peer.close();
-        //     this._peer = null;
-        //   }
-        // }
+        const data = e.detail;
+        if (this._connectionId == data.connectionId) {
+            this.onDisconnect(data.connectionId);
+            if (this._peer) {
+                this._peer.close();
+                this._peer = null;
+            }
+        }
     }
 
     async _onOffer(e) {
-        console.log("receive offer event")
-        // const offer = e.detail;
-        // if (!this._peer) {
-        //   this._preparePeerConnection(offer.connectionId, offer.polite);
-        // }
-        // const desc = new RTCSessionDescription({ sdp: offer.sdp, type: "offer" });
-        // try {
-        //   await this._peer.onGotDescription(offer.connectionId, desc);
-        // } catch (error) {
-        //   Logger.warn(`Error happen on GotDescription that description.\n Message: ${error}\n RTCSdpType:${desc.type}\n sdp:${desc.sdp}`);
-        //   return;
-        // }
+        const offer = e.detail;
+        if (!this._peer) {
+            this._preparePeerConnection(offer.connectionId, offer.polite);
+        }
+        const desc = new RTCSessionDescription({ sdp: offer.sdp, type: "offer" });
+        try {
+            await this._peer.onGotDescription(offer.connectionId, desc);
+        } catch (error) {
+            console.warn(`Error happen on GotDescription that description.\n Message: ${error}\n RTCSdpType:${desc.type}\n sdp:${desc.sdp}`);
+            return;
+        }
     }
 
     async _onAnswer(e) {
-        console.log("receive answer event")
-        // const answer = e.detail;
-        // const desc = new RTCSessionDescription({ sdp: answer.sdp, type: "answer" });
-        // if (this._peer) {
-        //   try {
-        //     await this._peer.onGotDescription(answer.connectionId, desc);
-        //   } catch (error) {
-        //     Logger.warn(`Error happen on GotDescription that description.\n Message: ${error}\n RTCSdpType:${desc.type}\n sdp:${desc.sdp}`);
-        //     return;
-        //   }
-        // }
+        const answer = e.detail;
+        const desc = new RTCSessionDescription({ sdp: answer.sdp, type: "answer" });
+        if (this._peer) {
+            try {
+                await this._peer.onGotDescription(answer.connectionId, desc);
+            } catch (error) {
+                console.warn(`Error happen on GotDescription that description.\n Message: ${error}\n RTCSdpType:${desc.type}\n sdp:${desc.sdp}`);
+                return;
+            }
+        }
     }
 
     async _onIceCandidate(e) {
-        console.log("receive candidate event")
-        // const candidate = e.detail;
-        // const iceCandidate = new RTCIceCandidate({ candidate: candidate.candidate, sdpMid: candidate.sdpMid, sdpMLineIndex: candidate.sdpMLineIndex });
-        // if (this._peer) {
-        //   await this._peer.onGotCandidate(candidate.connectionId, iceCandidate);
-        // }
+        const candidate = e.detail;
+        const iceCandidate = new RTCIceCandidate({ candidate: candidate.candidate, sdpMid: candidate.sdpMid, sdpMLineIndex: candidate.sdpMLineIndex });
+        if (this._peer) {
+            await this._peer.onGotCandidate(candidate.connectionId, iceCandidate);
+        }
     }
 
     async createConnection(connectionId) {

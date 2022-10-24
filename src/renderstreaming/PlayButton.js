@@ -2,7 +2,12 @@
 function PlayButton({ onClick }) {
 
     return (
-        <button onClick={onClick}>Show Stream</button>
+        <button
+            className="bg-green-500 rounded w-[25%] p-[1rem] text-white" 
+            onClick={onClick}
+        >
+            <span>Show Stream</span>
+        </button>
     )
 }
 

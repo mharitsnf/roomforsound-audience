@@ -1,11 +1,11 @@
 
 export class WebSocketDispatcher extends EventTarget {
-    constructor(sendMessage) {
+    constructor(websocket) {
         super()
         this.sleep = msec => new Promise(resolve => setTimeout(resolve, msec));
         this.connectionId = null
-        this.isWsOpen = false
-        this.sendMessage = sendMessage
+        this.isWsOpen = true
+        this.websocket = websocket
     }
 
     customDispatch(type, payload) {
@@ -31,12 +31,34 @@ export class WebSocketDispatcher extends EventTarget {
 
     createConnection(connectionId) {
         const sendJson = { type: "connect", connectionId: connectionId };
-        this.sendMessage(JSON.stringify(sendJson))
+        this.websocket.send(JSON.stringify(sendJson))
+    }
+
+    deleteConnection(connectionId) {
+        const sendJson = JSON.stringify({ type: "disconnect", connectionId: connectionId });
+        this.websocket.send(sendJson);
     }
 
     sendOffer(connectionId, sdp) {
         const data = { 'sdp': sdp, 'connectionId': connectionId };
         const sendJson = { type: "offer", from: connectionId, data: data };
-        this.sendMessage(JSON.stringify(sendJson))
+        this.websocket.send(JSON.stringify(sendJson))
+    }
+
+    sendAnswer(connectionId, sdp) {
+        const data = { 'sdp': sdp, 'connectionId': connectionId };
+        const sendJson = JSON.stringify({ type: "answer", from: connectionId, data: data });
+        this.websocket.send(sendJson);
+    }
+
+    sendCandidate(connectionId, candidate, sdpMLineIndex, sdpMid) {
+        const data = {
+            'candidate': candidate,
+            'sdpMLineIndex': sdpMLineIndex,
+            'sdpMid': sdpMid,
+            'connectionId': connectionId
+        };
+        const sendJson = JSON.stringify({ type: "candidate", from: connectionId, data: data });
+        this.websocket.send(sendJson);
     }
 }

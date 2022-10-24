@@ -8,7 +8,6 @@ export class Peer extends EventTarget {
         this.polite = polite;
         this.config = config;
         this.pc = new RTCPeerConnection(this.config);
-        console.log(this.pc)
         this.makingOffer = false;
         this.waitingAnswer = false;
         this.ignoreOffer = false;
@@ -57,7 +56,6 @@ export class Peer extends EventTarget {
 
     async _onNegotiation() {
         try {
-            console.log('asdasd')
             this.log(`SLD due to negotiationneeded`);
             this.assert_equals(this.pc.signalingState, 'stable', 'negotiationneeded always fires in stable state');
             this.assert_equals(this.makingOffer, false, 'negotiationneeded not already in progress');
@@ -75,7 +73,6 @@ export class Peer extends EventTarget {
     }
 
     async loopResendOffer() {
-        console.log(this.pc, this.waitingAnswer)
         while (this.connectionId) {
             if (this.pc && this.waitingAnswer) {
                 this.dispatchEvent(new CustomEvent('sendoffer', { detail: { connectionId: this.connectionId, sdp: this.pc.localDescription.sdp } }));
@@ -141,6 +138,7 @@ export class Peer extends EventTarget {
     }
 
     async onGotDescription(connectionId, description) {
+        console.log("ongotdescription", connectionId, description)
         if (this.connectionId != connectionId) {
             return;
         }

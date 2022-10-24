@@ -69,7 +69,7 @@ function Message({ audienceId, audienceName }) {
     return (
         <div className='my-[2%] mx-[2%] h-full shadow-2xl rounded-[1rem]'>
             <div className='p-[2.5rem] lg:px-[8rem]'>
-                <div className='flex justify-center'>
+                <div className='flex justify-center mb-[2rem]'>
                     <p className='text-xl'>Hello <b>{audienceName}</b>!</p>
                 </div>
 
