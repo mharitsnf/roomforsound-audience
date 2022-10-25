@@ -10,23 +10,20 @@ export class BaseVideoPlayer {
         this.inputRemoting = null
         this.sender = null
         this.inputSenderChannel = null
+        this.videoRef = null
     }
 
     /**
      * @param {Element} playerElement parent element for create video player
      * @param {HTMLInputElement} lockMouseCheck use checked propety for lock mouse 
      */
-    createPlayer(playerElement, lockMouseCheck) {
+    createPlayer(playerElement, lockMouseCheck, videoPlayer) {
         this.playerElement = playerElement;
         this.lockMouseCheck = lockMouseCheck;
+        this.videoElement = videoPlayer;
 
-        this.videoElement = document.createElement('video');
-        this.videoElement.id = 'Video';
-        this.videoElement.style.touchAction = 'none';
-        this.videoElement.playsInline = true;
         this.videoElement.srcObject = new MediaStream();
         this.videoElement.addEventListener('loadedmetadata', this._onLoadedVideo.bind(this), true);
-        this.playerElement.appendChild(this.videoElement);
 
         this.videoElement.addEventListener("click", this._mouseClick.bind(this), false);
     }

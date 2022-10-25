@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useWebSocket } from "react-use-websocket/dist/lib/use-websocket"
 import { RenderStreaming } from "./RenderStreaming"
 import { WebSocketDispatcher } from "./WebSocketDispatcher"
 import { BaseVideoPlayer } from "./BaseVideoPlayer"
+import toast from "react-hot-toast";
 
 let wsDispatcher = null
 let renderStreaming = null
@@ -15,13 +16,15 @@ function getRTCConfiguration() {
     return config;
 }
 
-function VideoPlayer({ wsUrl, selectedCodec, supportsSetCodecPreferences }) {
+function VideoPlayer({ wsUrl, selectedCodec, supportsSetCodecPreferences, setIsVideoDisplayed }) {
+    const videoRef = useRef()
 
     const setupVideoPlayer = () => {
         vp = new BaseVideoPlayer()
         const videoContainer = document.getElementById("videoContainer")
         const lockMouseCheck = document.getElementById("lockMouseCheck")
-        vp.createPlayer(videoContainer, lockMouseCheck)
+        const videoPlayer = document.getElementById("videoPlayer")
+        vp.createPlayer(videoContainer, lockMouseCheck, videoPlayer)
     }
 
     const setupRenderStreaming = async (websocket) => {
@@ -47,6 +50,8 @@ function VideoPlayer({ wsUrl, selectedCodec, supportsSetCodecPreferences }) {
         wsDispatcher.isWsOpen = false
         wsDispatcher = null
         vp.deletePlayer()
+        setIsVideoDisplayed(false)
+        toast("Stream ended!")
     }
 
     const setCodecPreferences = () => {
@@ -123,13 +128,13 @@ function VideoPlayer({ wsUrl, selectedCodec, supportsSetCodecPreferences }) {
 
     return (
         <div id="videoContainer" className="w-full flex flex-col">
-            <div className="flex gap-[2rem]">
+            <div className="hidden flex gap-[2rem]">
                 <span>Lock cursor to player: </span>
                 <input type="checkbox" id="lockMouseCheck"></input>
             </div>
-            <select id="codecPreferences" disabled>
-                <option selected value="">Default</option>
-            </select>
+            <video ref={videoRef} id="videoPlayer" playsInline style={{ touchAction: "none" }}>
+
+            </video>
         </div>
     )
 }
