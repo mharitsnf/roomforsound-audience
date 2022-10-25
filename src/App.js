@@ -2,8 +2,8 @@ import './App.css';
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useState } from 'react';
 import { Toaster } from "react-hot-toast";
-import Name from './pages/name';
-import Message from './pages/message';
+import Name from './pages/Name';
+import Message from './pages/Message';
 
 export const protocols = {
   http: "http://",
