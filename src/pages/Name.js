@@ -7,8 +7,8 @@ import { protocols, domains } from "../App"
 function Name({ handleSubmitName, resetAudience, audienceId }) {
     const [textBoxValue, setTextBoxValue] = useState("")
 
-    // let APILink = protocols.https + domains.development
-    let APILink = protocols.http + domains.local
+    let APILink = protocols.https + domains.development
+    // let APILink = protocols.http + domains.local
 
     useEffect(() => {
         if (audienceId !== "") {

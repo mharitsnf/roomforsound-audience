@@ -9,8 +9,8 @@ function Message({ audienceId, audienceName }) {
     const [textBoxValue, setTextBoxValue] = useState("")
     const navigate = useNavigate()
 
-    let APILink = protocols.http + domains.local
-    let wsUrl = protocols.ws + domains.local
+    let APILink = protocols.https + domains.development
+    let wsUrl = protocols.wss + domains.development
 
     useEffect(() => {
         const handleVisibilityChange = event => {
